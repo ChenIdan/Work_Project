@@ -1,0 +1,7 @@
+We have encounterd problems with division by zero. because we get the dependent probability matrix of markov order k by dividing the probabilities vectors
+of the joint probabilities of all possible sequences of matkov order mk and mk-1, and probability zero is encounterd in those vectors, which creats 
+a runtime error.
+
+souloution: we need to add some values to normalize the probability matrix in such way that the original probability values will be saved,
+but the zeroes will disapear and replaced by positive values. 
+

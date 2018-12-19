@@ -1,0 +1,310 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\usepackage[]{algorithm2e}
+\usepackage{culmus}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath}% 
+\usepackage{siunitx}
+\usepackage{layout}
+\usepackage{amsfonts}
+\usepackage{scalerel}[2016-12-29]
+\usepackage{mathtools}
+\usepackage{relsize}
+\usepackage{adjustbox}
+\usepackage{fancybox}
+\usepackage{tikz}
+\usetikzlibrary{trees}
+\usepackage{forest}
+\usepackage{scrextend}
+\KOMAoption{fontsize}{12pt}
+\newcommand\md{\ }
+\newcommand{\RemoveAlgoNumber}{\renewcommand{\fnum@algocf}{\AlCapSty{\AlCapFnt\algorithmcfname}}}
+\newcommand{\RevertAlgoNumber}{\algocf@resetfnum}
+\LinesNumbered
+\sloppy 
+\nobreak
+\end_preamble
+\use_default_options true
+\begin_modules
+theorems-ams
+eqs-within-sections
+figs-within-sections
+lyxNotebookCellPythonTwo
+algorithm2e
+fixme
+fix-cm
+changebars
+\end_modules
+\maintain_unincluded_children false
+\language hebrew
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 10
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1.5cm
+\topmargin 1.5cm
+\rightmargin 1.5cm
+\bottommargin 1.5cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 2
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+\lang english
+project progress
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+we decided to give two new paramaters to the model :
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+1.
+ A uniform paramater - we will the use only the indexes [uniform: 127-uniform]
+ to calculate the pwm matrix.
+ the indexes [0:uniform -1] and [127-uniform+1:127] will be with uniform
+ probability - every possibile nucleutid sequence can be on those sequences.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+We can conculde that our pwm matrix will be: 
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+All the rows will be filled with ones, from the first row to the uniform's
+ -1 row.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+From the uniform's row to the 127-uniform row - All the rows will be the
+ rows of a pwm calculated from the sequences in indexes [uniform: 127-uniform]
+ at each nucleusome.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+And the last uniform's rows will also be filled with one's.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+The reason: if every nucleusome can sit on each possible nucleutid sequence
+ on the uniform's first and last indexes, than the probability of it to
+ sit on 127 base pairs sequence is determined by the the probability of
+ the [uniform: 127-uniform] indexes of the nucleusome to sit on the [uniform:
+ 127-uniform] indexes of the base pairs sequence.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Let's examine an example with the uniform paramater 2.
+ The probability of the nucleusome to sit on a sequence 
+\begin_inset Formula $N$
+\end_inset
+
+ is:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+p\left(N\right)=p\left(N_{1}\right)p\left(\left.N_{2}\right|N_{1}\right)\cdot p\left(\left.N_{3}\right|N_{2}\right)....\cdot p\left(\left.N_{125}\right|N_{124}\right)p\left(\left.N_{126}\right|N_{125}\right)p\left(\left.N_{127}\right|N_{126}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+But with uniform distribution on the edges, every possibile nucleutide can
+ be on 
+\begin_inset Formula $N_{1},N_{2},N_{126},N_{127}$
+\end_inset
+
+.
+ so 
+\begin_inset Formula 
+\[
+p\left(N_{1}\right)p\left(\left.N_{2}\right|N_{1}\right)=p\left(N_{1}N_{2}\right)=\sum_{N_{1},N_{2}\in\left\{ A,C,G,T\right\} }p\left(N_{1}N_{2}\right)=1
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+And: 
+\begin_inset Formula 
+\[
+p\left(\left.N_{126}\right|N_{125}\right)p\left(\left.N_{127}\right|N_{126}\right)=p\left(\left.N_{126}N_{127}\right|N_{125}\right)=\sum_{N_{127},N_{126}\in\left\{ A,C,G,T\right\} }p\left(\left.N_{126}N_{127}\right|N_{125}\right)=1
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+So: 
+\lang hebrew
+
+\begin_inset Formula 
+\[
+p\left(N\right)=p\left(\left.N_{3}\right|N_{2}\right)....\cdot p\left(\left.N_{125}\right|N_{124}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+And 
+\begin_inset Formula 
+\begin{eqnarray*}
+p\left(\left.N_{3}\right|N_{2}\right) & =p\left(\left.N_{3}\right|A_{2}\right)+p\left(\left.N_{3}\right|C_{2}\right) & +p\left(\left.N_{3}\right|G_{2}\right)+p\left(\left.N_{3}\right|T_{2}\right)=p\left(N_{3}\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+Hence that:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+p\left(N\right)=p\left(N_{3}\right)p\left(N_{4}\left|N_{3}\right.\right)....\cdot p\left(\left.N_{125}\right|N_{124}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+2.
+ When calculating the joint probability matrix, now, for every sequence
+ on the fasta file, we add the reverse compliment of the sequence to the
+ calculation of the joint probability matrix.
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+3.
+ We added one more parameter - offset.
+ With this paramater, we can add to the calculation of the joint probability
+ matrix the sequences [uniform+offset: 127-uniform-offset] and 
+\end_layout
+
+\begin_layout Standard
+
+\lang english
+[uniform - offset:127-uniform+offset].
+ We are also using the reverse compliments of thos sequences.
+ 
+\end_layout
+
+\end_body
+\end_document

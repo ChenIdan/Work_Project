@@ -1,0 +1,13 @@
+Project Progress-19.7.17
+
+We had managed to create a position dependent probability matrix, and get from it a score vector of a  DNA  sequence that is entered by the user.
+Now, we want to get a probability score vector to a DNA sequence entered by the user by a position independent probability matrix. 
+The meaning of a position independent probability matrix is a matrix which it’s probability value for a certain nucleotide sequence is the general probability for seeing that sequence. Not the probability of seeing that sequence in a specific location. That means that all the matrix column will be identical. 
+We will get the probability score vector of a DNA sequence entered by the user by multiplying the probability matrix with the position matrix, and extricate the diagonals multiplications of the product matrix and then return the vector of the diagonals multiplications.
+The algorithm in which we will use to create the independent probability matrix:
+Input: 
+Mk- markov order.
+Dep_mat- position dependent probability matrix of markov order mk. 
+Algorithm:
+For every column:
+
