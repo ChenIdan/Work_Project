@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebResourcesPaths">
+    <contentEntries>
+      <entry url="file://$PROJECT_DIR$/..">
+        <entryData>
+          <resourceRoots>
+            <path value="file://$PROJECT_DIR$/../train_files" />
+            <path value="file://$PROJECT_DIR$/../trained_models" />
+            <path value="file://$PROJECT_DIR$/../sequence_file" />
+            <path value="file://$PROJECT_DIR$/../segal_results" />
+          </resourceRoots>
+        </entryData>
+      </entry>
+    </contentEntries>
+  </component>
+</project>
