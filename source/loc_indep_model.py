@@ -80,9 +80,11 @@ def get_model(confg_vecs_file,chromosome_file, mk_order, alphabet,const, protein
 	confg_vecs_file = open(confg_vecs_file)
 	chromosome_file=open(chromosome_file)
 	for vec_line,chromosome in zip(confg_vecs_file,chromosome_file):
-		confg_vec = np.fromstring(vec_line, sep=";")
+
 
 		chromosome_len = len(chromosome)
+
+		confg_vec = np.fromstring(vec_line, sep=";")[0:chromosome_len]
 
 		loc_sums = get_sums(confg_vec, mk_order)
 		# get seq matrix (from the proterin sequence)

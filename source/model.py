@@ -114,6 +114,13 @@ def main(argv):  # main program
 
 	parser.add_argument("-loc_indep_const", type=float, help="constant preventing division by zero")
 
+	parser.add_argument("-protein_len", type=int, dest="protein_len")
+
+	parser.add_argument("-loc_indep_confg_vecs_file", type = str, dest="loc_indep_confg_vecs")
+
+	parser.add_argument("-loc_indep_seq_file", type=str, dest="loc_indep_seq")
+
+
 
 
 	dict_prob_method = {'loc_dep_prob': 0, 'loc_indep_prob': 1}  # dictionary for probability methods for model
@@ -147,15 +154,12 @@ def main(argv):  # main program
 
 	#code for generating pwm from train file
 	elif args.pos_indep_model_gen_method == "train_file_pos_indep":
-		confg_vec = np.load(args.config_vec)
-
-		with open(args.chrome_seq, 'r') as chrome_file:
-			chromosme_seq= chrome_file.read()
 
 
 		const = args.loc_indep_const
 
-		loc_indep_model_mat =  loc_indep_model.get_model(confg_vec ,chromosme_seq,loc_indep_mk_order, alphabet, const, 147)
+
+		loc_indep_model_mat =  loc_indep_model.get_model(args.loc_indep_confg_vecs ,args.loc_indep_seq,loc_indep_mk_order, alphabet, const, args.protein_len)
 		np.save(base_dir+"trained_models"+ sep + "trained_pos_indep_model", loc_indep_model_mat )
 
 
@@ -175,7 +179,7 @@ def main(argv):  # main program
 	if args.seq_file:
 		with open(args.seq_file, 'r+') as f:
 			seq_str = f.readline().splitlines()[0]
-			loc_indep_seq_mat = seq_funcs.get_seqMat(seq_str, loc_indep_mk_order,alphabet)
+			loc_indep_seq_mat = seq_funcs. get_sparse_SeqMat(seq_str, loc_indep_mk_order,alphabet)
 
 		loc_indep_score_vec = model_scores.score_vec(loc_indep_model_mat, loc_indep_seq_mat, loc_indep_mk_order, uniform)
 
@@ -254,7 +258,7 @@ def main(argv):  # main program
 	if args.seq_file:
 		with open(args.seq_file, 'r+') as f:
 			seq_str = f.readline().splitlines()[0]
-			loc_dep_seq_mat = seq_funcs.get_seqMat(seq_str, loc_dep_mk_order,alphabet)
+			loc_dep_seq_mat = seq_funcs.get_sparse_SeqMat(seq_str, loc_dep_mk_order,alphabet)
 
 			loc_dep_score_vec = model_scores.score_vec(loc_dep_model_mat, loc_dep_seq_mat, loc_dep_mk_order, uniform)
 
@@ -276,6 +280,7 @@ def main(argv):  # main program
 
 
 	# now the score vector is calculated from the position independent model and the position dependent model
+
 
 	score_vec = np.log(np.divide(loc_dep_score_vec, loc_indep_score_vec))
 
@@ -317,8 +322,8 @@ def main(argv):  # main program
 	np.save("kaplan_nucleusome_sit", np.exp(sit_probability))
 	np.save("kaplan_nusleusome_start", np.exp(start_probability))
 
-	plt.plot(range(seq_len), np.exp(sit_probability))
-	np.save("pos_dep_model_mat",loc_dep_model_mat )
+	plt.plot(range(seq_len)[0:5000], np.exp(sit_probability)[0:5000])
+	np.save("pos_dep_model_mat",loc_dep_model_mat)
 
 
 
@@ -398,6 +403,7 @@ kaplan_dir = base_dir+'kaplan_results'+sep
 segal_mats_dir =  base_dir +'segal_model_matrices'+sep
 seq_dir = base_dir+'sequence_file'+sep
 train_dir = base_dir + 'train_files' + sep
+non_pos_train_dir = base_dir + 'non_pos_vecs' + sep
 
 argv_input_gxw_file_check = 'model.py -pos_indep_model_generate_method input_file -pos_indep_model_file_method numpy -pos_indep_model_prob_output_method numpy ' \
 	   '-pos_indep_model_input_file ' +segal_mats_dir+ 'segal_pos_indep_pwm.npy ' \
@@ -413,11 +419,17 @@ argv_input_gxw_file_check = 'model.py -pos_indep_model_generate_method input_fil
 
 
 argv_for_train_file_check = 'model.py -pos_indep_model_generate_method train_file_pos_indep -pos_indep_model_prob_output_method  numpy ' \
-'-pos_indep_model_markov_order 4  -loc_indep_const 2 -config_vec config_vec.npy -chromosome_seq chromosome -alphabet A,C,G,T,B,D -rc_alphabet T,G,C,A,D,B -pos_indep_model_prob_output_file pos_indep_probs '  \
+'-pos_indep_model_markov_order 4  -loc_indep_const 2 -config_vec config_vec.npy -chromosome_seq chromosome -alphabet A,C,G,T,D,B -rc_alphabet T,G,C,A,B,D -pos_indep_model_prob_output_file pos_indep_probs '  \
 	   ' -uniform 0 -offset 0 -seq_file ' + seq_dir+ 'seq_input ' \
 '-pos_dep_model_generate_method train_file -pos_dep_model_prob_output_method numpy -pos_dep_model_markov_order 1' \
-' -pos_dep_model_prob_output_file pos_dep_probs -temp_param 1 -nc_concentration  1 -row_binding_output_method numpy' \
+' -pos_dep_model_prob_output_file pos_dep_probs -temp_param 1' \
+													 ' -nc_concentration  1 -row_binding_output_method numpy' \
 ' -row_binding_file_name ' + kaplan_dir+ \
-'kaplan_scores  -train_file ' +train_dir+ 'fasta_file1'
+'kaplan_scores  -train_file ' +train_dir+ 'extracted_fasta -protein_len 146 -loc_indep_confg_vecs_file  ' \
+										  + non_pos_train_dir +'non_loc_vecs  -loc_indep_seq_file ' \
+										  + non_pos_train_dir +'non_loc_seqs'
 
 main(argv_for_train_file_check.split()[1:])
+
+
+

@@ -2,17 +2,14 @@
 
 import numpy as np
 
-
 def Pfunc(PWM, DNA, uniform):
 
-	new_DNA= np.transpose(DNA)
+	uniform_l = np.ones((uniform, DNA.get_shape()[1]))
+	uniform_r = np.ones((uniform, DNA.get_shape()[1]))
 
-	uniform_l = np.ones((uniform, DNA.shape[1]))
-	uniform_r = np.ones((uniform, DNA.shape[1]))
-
-	PWM = np.vstack([np.vstack([uniform_l , PWM]), uniform_r]) # add ones filled rows on the upper and lower part of the matrix
-	product = np.dot(PWM, new_DNA)
-	return product
+	PWM = np.vstack([np.vstack([uniform_l, PWM]), uniform_r]) # add ones filled rows on the upper and lower part of the matrix
+	product = DNA*np.transpose(PWM)
+	return np.transpose(product)
 
 
 def get_prob(array):  # calculates probability product
