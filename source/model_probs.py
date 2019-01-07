@@ -43,12 +43,12 @@ def prob_loc_sit(cur_loc, seq_len, score_vec, forwards, backwards, log_nc_concen
 		#score_vec - the statistical score given to the nucleosome sitting at seq[i,...,i+146]
 def sum_forwards(seq_len,score_vec, log_nc_concentarion, temp_param):
 	probs_sum = np.zeros(seq_len)
-	protein_len = seq_len -len(score_vec)
+	protein_len = seq_len -len(score_vec) +1
 	for i in range(protein_len,seq_len):
 		if i == protein_len:
-			probs_sum[i] = log_nc_concentarion+score_vec[i-146]*temp_param
+			probs_sum[i] = log_nc_concentarion+score_vec[i-(protein_len-1)]*temp_param
 		else:
-			probs_sum[i]=  np.logaddexp(probs_sum[i-1],log_nc_concentarion+probs_sum[i-147]+score_vec[i-146]*temp_param)
+			probs_sum[i]=  np.logaddexp(probs_sum[i-1],log_nc_concentarion+probs_sum[i-protein_len]+score_vec[i-(protein_len-1)]*temp_param)
 	return probs_sum
 
 #method for summing the statitistical weight of all posibbile nucleosome configurations,
@@ -61,11 +61,12 @@ def sum_forwards(seq_len,score_vec, log_nc_concentarion, temp_param):
 def sum_backwards(seq_len, score_vec, log_nc_concentarion, temp_param):
 	probs_sum = np.zeros(seq_len)
 	loop_range = range(0,len(score_vec))[::-1]
+	protein_len = seq_len - len(score_vec) + 1
 	for i in loop_range:
 		if i == len(score_vec) - 1:
 			probs_sum[i] = log_nc_concentarion +score_vec[i]*temp_param
 		else:
-			probs_sum[i] = np.logaddexp(probs_sum[i+1],log_nc_concentarion +probs_sum[i+147]+score_vec[i]*temp_param)
+			probs_sum[i] = np.logaddexp(probs_sum[i+1],log_nc_concentarion +probs_sum[i+protein_len]+score_vec[i]*temp_param)
 	return probs_sum
 
 
