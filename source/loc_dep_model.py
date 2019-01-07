@@ -8,6 +8,7 @@ TODO: write summary of what we did so far
 '''
 import numpy as np
 import seq_funcs
+import re
 
 
 def Jpwm_from_seq(pos_mats_sum, const, mats_num,mk_ord, alphabet):  # function for creating Joint probability matrix from a list of position
@@ -45,6 +46,7 @@ def get_Jpwm(seq_file, mk_ord, const , uniform, offset,alphabet, rc_alphabet):  
 			cur_mats_sum = seq_funcs.get_mk_seqMat(line.splitlines()[0], mk_ord, uniform, offset, alphabet)  # translate sequence line to sequence matrix
 			break
 
+
 	cur_mats_sum.fill(0)
 	fh.seek(0)
 
@@ -58,6 +60,11 @@ def get_Jpwm(seq_file, mk_ord, const , uniform, offset,alphabet, rc_alphabet):  
 			cur_mats_sum = cur_mats_sum + cur_rc_mat  # add current sequence matrix to sum
 
 			seq_mats_num = seq_mats_num + 2 #count the sequence matrices
+		else:
+			a = re.search('[0-9]+', line).group()
+			if a!='1':
+				break
+
 
 	if cur_mats_sum == [] or cur_mat == []:
 		exit("there are no sequence matrices in you train file\n")
