@@ -59,10 +59,39 @@ def get_Jpwm(seq_file, mk_ord, const , uniform, offset,alphabet, rc_alphabet):  
 			cur_rc_mat = seq_funcs.get_mk_seqMat(seq_funcs.rc_seq(line.splitlines()[0],alphabet,rc_alphabet), mk_ord, uniform, offset,alphabet) #get sequence matrix from the reverse compliment sequence
 			cur_mats_sum = cur_mats_sum + cur_rc_mat  # add current sequence matrix to sum
 
-			seq_mats_num = seq_mats_num + 2 #count the sequence matrices
+
+
+
+			cur_mat = seq_funcs.get_mk_seqMat(line.splitlines()[0], mk_ord, uniform, -offset,
+											  alphabet)  # translate sequence lines to sequence matrix
+			cur_mats_sum = cur_mats_sum + cur_mat  # add current sequence matrix to sum
+
+			cur_rc_mat = seq_funcs.get_mk_seqMat(seq_funcs.rc_seq(line.splitlines()[0], alphabet, rc_alphabet), mk_ord,
+												 uniform, -offset,
+												 alphabet)  # get sequence matrix from the reverse compliment sequence
+			cur_mats_sum = cur_mats_sum + cur_rc_mat  # add current sequence matrix to sum
+
+
+
+
+
+			cur_mat = seq_funcs.get_mk_seqMat(line.splitlines()[0], mk_ord, uniform, 0,
+											  alphabet)  # translate sequence lines to sequence matrix
+			cur_mats_sum = cur_mats_sum + cur_mat  # add current sequence matrix to sum
+
+			cur_rc_mat = seq_funcs.get_mk_seqMat(seq_funcs.rc_seq(line.splitlines()[0], alphabet, rc_alphabet), mk_ord,
+												 uniform, 0,
+												 alphabet)  # get sequence matrix from the reverse compliment sequence
+			cur_mats_sum = cur_mats_sum + cur_rc_mat  # add current sequence matrix to sum
+
+
+
+
+
+			seq_mats_num = seq_mats_num + (offset>0)*4 + 2 #count the sequence matrices
 		else:
 			a = re.search('[0-9]+', line).group()
-			if a!='1':
+			if a != '1':
 				break
 
 
@@ -72,6 +101,7 @@ def get_Jpwm(seq_file, mk_ord, const , uniform, offset,alphabet, rc_alphabet):  
 	seq_len = np.shape(cur_mat)[0]
 	const = 1.0 / np.power(float(alphabet_len), seq_len - const - 1) #we convert to float to prevent division by zero
 	fh.close()
+
 
 	return Jpwm_from_seq(cur_mats_sum , const, seq_mats_num,mk_ord,alphabet)
 
@@ -107,7 +137,6 @@ def pos_dep_con_mat(seq_file, mk_ord, uniform, offset,alphabet, rc_alphabet):  #
 	# make spare information in the first markov order rows into one row
 	con_mat = kill_spare_lines(con_mat,mk_ord)
 
-
 	return con_mat  # return conditional probability matrix
 
 
@@ -122,3 +151,4 @@ def kill_spare_lines(model_mat, mk_order):
 		model_mat[0]=first_row
 
 	return model_mat
+

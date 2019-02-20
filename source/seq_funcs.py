@@ -51,7 +51,7 @@ def get_mk_seqMat(seq, mk_ord, uniform, offset,alphabet):  # create markov posit
 	pos = 0
 	tmp = mk_ord + 1
 	seq = seq.split()[0]
-	seq_len = len(seq)  - 2 * uniform
+	seq_len = len(seq) - 2 * uniform
 	alphabet_len = len(alphabet)
 	mklen = int(math.pow(alphabet_len, tmp))  # current markov sequence permutations number
 	seq_mat = np.zeros((seq_len, mklen))  # create zero filled matrix according to markov order#
