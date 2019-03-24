@@ -5,7 +5,10 @@ from string import maketrans
 # code for creating random fasta file and random sequence files
 
 #function for creating random fasta file. seq_num is the number of sequences in the the file.
+
 #  seq_len is the length of the sequences
+
+
 def fasta_file(seq_num,seq_len, file_name,alphabet):
 	seq_list = []
 	xk = np.arange(0,len(alphabet))
@@ -54,9 +57,9 @@ def random_chrom(seq_len, file_name,alphabet, nc_num):
 
 
 
-print random_chrom(10000, "chromosome","ACGTBD",100)
+print random_chrom(10, "chromosome","ACGT",1)
 
-
+fasta_file(1, 5, "/home/chenidan/nucleusome/train_files/random_fasta","ACGT")
 
 
 

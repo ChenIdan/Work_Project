@@ -2,13 +2,10 @@
 function for calculating the position independent probabilities, from a vector that its i'th pace contains the number of nucleusome covering a this location on the chromosome
 '''
 
-
-
 import seq_funcs
+import loc_dep_model
 import numpy as np
-
-
-
+import re
 
 '''
 function that calculates the number of the nucleusome covering every k- mere on the nuclesome
@@ -16,16 +13,18 @@ the k in the k-mere is the integer mk_order
 confg_vec is the configuration vector
 the summing is done with matrix manipulation
 '''
+
+
 def get_sums(confg_vec, mk_order):
-	mat_sums = np.tile(confg_vec,(mk_order+1,1))
+    mat_sums = np.tile(confg_vec, (mk_order + 1, 1))
 
-	mat_sums = np.resize(mat_sums , (mat_sums.shape[0], mat_sums.shape[1]+1))
+    mat_sums = np.resize(mat_sums, (mat_sums.shape[0], mat_sums.shape[1] + 1))
 
-	mat_sums = np.transpose(mat_sums)
+    mat_sums = np.transpose(mat_sums)
 
-	confg_sums = np.sum(mat_sums, axis = 1)[0: len(confg_vec) - mk_order -1 ]
+    confg_sums = np.sum(mat_sums, axis=1)[0: len(confg_vec) - mk_order - 1]
 
-	return confg_sums
+    return confg_sums
 
 
 '''
@@ -33,92 +32,91 @@ function that calculates the independent location probabilities on of every poss
 the const variable is a constant added to the sum of configuration, to prevent division by zero
 
 '''
-def old_get_model(confg_vec, chromosome, mk_order, alphabet,const, protein_len):
-
-	#get the number of nuck
-	chromosome_len = len(chromosome)
 
 
-	loc_sums= get_sums(confg_vec,mk_order)
+def old_get_model(confg_vec, chromosome, mk_order, alphabet, const, protein_len):
+    # get the number of nuck
+    chromosome_len = len(chromosome)
 
-	#get seq matrix (from the proterin sequence)
+    loc_sums = get_sums(confg_vec, mk_order)
 
-	seq_mat =seq_funcs.get_seqMat(chromosome, mk_order, alphabet)
+    # get seq matrix (from the proterin sequence)
 
-	#get the number of nucleusomes on every k-mere by multiplying the sequence matrix and the configuration vector
-	confg_sums = np.dot(loc_sums, seq_mat)
+    seq_mat = seq_funcs.get_seqMat(chromosome, mk_order, alphabet)
 
-	#add the constant to every cell on the configuration sums vector, to prevent division by zero
+    # get the number of nucleusomes on every k-mere by multiplying the sequence matrix and the configuration vector
+    confg_sums = np.dot(loc_sums, seq_mat)
 
-	base_vec = np.ones(len(confg_sums)) * const
+    # add the constant to every cell on the configuration sums vector, to prevent division by zero
 
-	confg_sums = confg_sums+ base_vec
+    base_vec = np.ones(len(confg_sums)) * const
 
-	#calculate Joint probabilities by normalizing the vector
+    confg_sums = confg_sums + base_vec
 
-	probs = confg_sums / np.sum(confg_sums)
+    # calculate Joint probabilities by normalizing the vector
 
-	#calculates the dependent probabilities by
+    probs = confg_sums / np.sum(confg_sums)
 
-	lower_probs = np.sum(np.reshape(probs, (len(probs)/len(alphabet) ,len(alphabet) )), axis=1)
+    # calculates the dependent probabilities by
 
-	lower_probs = np.repeat(lower_probs, len(alphabet), axis= 0)
+    lower_probs = np.sum(np.reshape(probs, (len(probs) / len(alphabet), len(alphabet))), axis=1)
 
-	conditional_probs = np.divide(probs,lower_probs)
+    lower_probs = np.repeat(lower_probs, len(alphabet), axis=0)
 
-	#creat the model matrix
+    conditional_probs = np.divide(probs, lower_probs)
 
-	conditional_mat = np.tile(conditional_probs, (protein_len -1 - mk_order, 1) )
+    # creat the model matrix
 
-	model_mat = np.vstack((probs, conditional_mat))
+    conditional_mat = np.tile(conditional_probs, (protein_len - 1 - mk_order, 1))
 
-	return model_mat
+    model_mat = np.vstack((probs, conditional_mat))
 
-
-def get_model(confg_vecs_file,chromosome_file, mk_order, alphabet,const, protein_len):
-	confg_vecs_sum = np.zeros(np.power(len(alphabet),mk_order+1))
-	confg_vecs_file = open(confg_vecs_file)
-	chromosome_file=open(chromosome_file)
-	for vec_line,chromosome in zip(confg_vecs_file,chromosome_file):
+    return model_mat
 
 
-		chromosome_len = len(chromosome)
+def get_model(confg_vecs_file, chromosome_file, mk_order, alphabet, const, protein_len):
+    confg_vecs_sum = np.zeros(np.power(len(alphabet), mk_order + 1))*const
+    confg_vecs_file = open(confg_vecs_file)
+    chromosome_file = open(chromosome_file)
 
-		confg_vec = np.fromstring(vec_line, sep=";")[0:chromosome_len]
+    for vec_line, chromosome in zip(confg_vecs_file, chromosome_file):
+        chromosome_len = len(chromosome)
 
-		loc_sums = get_sums(confg_vec, mk_order)
-		# get seq matrix (from the proterin sequence)
+        confg_vec = np.fromstring(vec_line, sep=";")
 
-		seq_mat = seq_funcs.get_sparse_SeqMat(chromosome, mk_order, alphabet)
+        vec_end = vec_line.split('::')[1]
 
-		# get the number of nucleusomes on every k-mere by multiplying the sequence matrix and the configuration vector
-		confg_sums = loc_sums*seq_mat
+        if re.findall("[0-9]+", vec_end)[0] != '1':
+            break
 
-		# add the constant to every cell on the configuration sums vector, to prevent division by zero
+        loc_sums = get_sums(confg_vec + np.ones(len(confg_vec))*np.power(4, const)*const, mk_order)
+
+        # get seq matrix (from the proterin sequence)
+
+        seq_mat = seq_funcs.get_sparse_SeqMat(chromosome, mk_order, alphabet)
+
+        # get the number of nucleusomes on every k-mere by multiplying the sequence matrix and the configuration vector
+        confg_sums = loc_sums * seq_mat
+
+        confg_vecs_sum = confg_vecs_sum + confg_sums
+
+    # calculate Joint probabilities by normalizing the vector
 
 
-		confg_vecs_sum =confg_vecs_sum + confg_sums
+    probs = confg_vecs_sum / np.sum(confg_vecs_sum)
 
-	base_vec = np.ones(len(confg_sums)) * const
+    # calculates the dependent probabilities by
 
-	confg_vecs_sum = confg_vecs_sum + base_vec
+    lower_probs = np.sum(np.reshape(probs, (len(probs) / len(alphabet), len(alphabet))), axis=1)
 
-	#calculate Joint probabilities by normalizing the vector
+    lower_probs = np.repeat(lower_probs, len(alphabet), axis=0)
 
-	probs = confg_vecs_sum/np.sum(confg_vecs_sum )
+    conditional_probs = np.divide(probs, lower_probs)
 
-	#calculates the dependent probabilities by
+    # creat the model matrix
 
-	lower_probs = np.sum(np.reshape(probs, (len(probs)/len(alphabet) ,len(alphabet) )), axis=1)
+    conditional_mat = np.tile(conditional_probs, (protein_len - mk_order - 1, 1))
 
-	lower_probs = np.repeat(lower_probs, len(alphabet), axis= 0)
+    model_mat = np.vstack((probs, conditional_mat))
 
-	conditional_probs = np.divide(probs,lower_probs)
-
-	#creat the model matrix
-
-	conditional_mat = np.tile(conditional_probs, (protein_len -1 - mk_order, 1) )
-
-	model_mat = np.vstack((probs, conditional_mat))
-
-	return model_mat
+    return model_mat

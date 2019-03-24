@@ -15,9 +15,9 @@ def Jpwm_from_seq(pos_mats_sum, const, mats_num,mk_ord, alphabet):  # function f
                                 #  matrices
     Jpwm = pos_mats_sum
     alphabet_len = len(alphabet)
-    i=0
+    i = 0
 
-    cur_mk_ord = 0.0
+    cur_mk_ord = 0
 
     for row in Jpwm:
         if cur_mk_ord == mk_ord:
@@ -60,8 +60,6 @@ def get_Jpwm(seq_file, mk_ord, const , uniform, offset,alphabet, rc_alphabet):  
 			cur_mats_sum = cur_mats_sum + cur_rc_mat  # add current sequence matrix to sum
 
 
-
-
 			cur_mat = seq_funcs.get_mk_seqMat(line.splitlines()[0], mk_ord, uniform, -offset,
 											  alphabet)  # translate sequence lines to sequence matrix
 			cur_mats_sum = cur_mats_sum + cur_mat  # add current sequence matrix to sum
@@ -88,7 +86,7 @@ def get_Jpwm(seq_file, mk_ord, const , uniform, offset,alphabet, rc_alphabet):  
 
 
 
-			seq_mats_num = seq_mats_num + (offset>0)*4 + 2 #count the sequence matrices
+			seq_mats_num = seq_mats_num + 6 #count the sequence matrices
 		else:
 			a = re.search('[0-9]+', line).group()
 			if a != '1':

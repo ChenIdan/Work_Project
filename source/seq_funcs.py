@@ -103,6 +103,3 @@ def get_sparse_SeqMat(seq, mk_ord,alphabet):
 	sparse_seq_mat = coo_matrix((data, (rows, cols)), shape=(len(seq) - mk_ord, np.power(len(alphabet), mk_ord+1)))
 
 	return sparse_seq_mat
-
-
-
