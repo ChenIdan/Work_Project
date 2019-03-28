@@ -44,10 +44,9 @@ def creatPlist(PPM, mk_ord):  # returns probability list. get the probability ma
     new_width = ppm_width+1
     new_ppm = np.resize(PPM, (ppm_len, new_width))  # get new probability matrix, with with all diagonals as rows
 
-    vecs_mat = new_ppm[ 0:ppm_len, 0:plist_len]
+    vecs_mat = new_ppm[0:ppm_len, 0:plist_len]
 
-    plist = np.prod(vecs_mat, axis=0)
-    return plist
+    return vecs_mat
 
 
 

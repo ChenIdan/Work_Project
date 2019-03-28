@@ -185,7 +185,7 @@ def main(argv):  # main program
             seq_str = f.readline().splitlines()[0]
             loc_indep_seq_mat = seq_funcs.get_sparse_SeqMat(seq_str, loc_indep_mk_order, alphabet)
 
-        loc_indep_score_vec = model_scores.score_vec(loc_indep_model_mat, loc_indep_seq_mat, loc_indep_mk_order, 0)
+        loc_indep_PPM = model_scores.score_vec(loc_indep_model_mat, loc_indep_seq_mat, loc_indep_mk_order, 0)
 
         f.close()
     else:
@@ -196,12 +196,12 @@ def main(argv):  # main program
         if args.pos_indep_model_prob_output_method == "pickle":
 
             with open((pos_indep_prob_output_file_name + ".pickle"), 'w') as fh:
-                pickle.dump(loc_indep_score_vec, fh)
+                pickle.dump(loc_indep_PPM, fh)
                 fh.close()
         elif args.pos_indep_model_prob_output_method == "numpy":
-            np.save(pos_indep_prob_output_file_name + ".npy", loc_indep_score_vec)
+            np.save(pos_indep_prob_output_file_name + ".npy", loc_indep_PPM)
         elif args.pos_indep_model_prob_output_method == "tabs":
-            np.savetxt(pos_indep_prob_output_file_name + ".tabs", loc_indep_score_vec)
+            np.savetxt(pos_indep_prob_output_file_name + ".tabs", loc_indep_PPM)
         else:
             exit(
                 "pleas choose method for saving you position independent probability vector. posibile methods are tabs, pickle, or numpy")
@@ -255,7 +255,7 @@ def main(argv):  # main program
             seq_str = f.readline().splitlines()[0]
             loc_dep_seq_mat = seq_funcs.get_sparse_SeqMat(seq_str, loc_dep_mk_order, alphabet)
 
-            loc_dep_score_vec = model_scores.score_vec(loc_dep_model_mat, loc_dep_seq_mat, loc_dep_mk_order, uniform)
+            loc_dep_PPM = model_scores.score_vec(loc_dep_model_mat, loc_dep_seq_mat, loc_dep_mk_order, uniform)
 
             f.close()
     else:
@@ -265,18 +265,21 @@ def main(argv):  # main program
         pos_dep_prob_output_file_name = args.pos_dep_model_prob_output_file
         if args.pos_dep_model_prob_output_method == "pickle":
             with open((pos_dep_prob_output_file_name + ".pickle"), 'w') as fh:
-                pickle.dump(loc_dep_score_vec, fh)
+                pickle.dump(loc_dep_PPM, fh)
         elif args.pos_dep_model_prob_output_method == "numpy":
-            np.save(pos_dep_prob_output_file_name, loc_dep_score_vec)
+            np.save(pos_dep_prob_output_file_name, loc_dep_PPM)
         elif args.pos_dep_model_prob_output_method == "tabs":
-            np.savetxt(pos_dep_prob_output_file_name, loc_dep_score_vec)
+            np.savetxt(pos_dep_prob_output_file_name, loc_dep_PPM)
         else:
             exit("please choose method for saving you position dependent probability vector. possible methods "
                  "are tabs, pickle, or numpy")
 
     # now the score vector is calculated from the position independent model and the position dependent model
 
-    score_vec = np.log(np.divide(loc_dep_score_vec, loc_indep_score_vec))
+    score_vec = np.sum(np.log(loc_indep_PPM) - np.log(loc_indep_PPM), axis=0)
+
+
+
     np.save("pos_dep_model_mat", loc_dep_model_mat)
 
     if args.row_binding_file_name:
@@ -544,17 +547,17 @@ argv_for_train_file_check = 'model.py -pos_indep_model_generate_method train_fil
 
 
 
-
 main(argv_for_train_file_check.split()[1:])
 
 argv_for_train_file_check = 'model.py -pos_indep_model_generate_method train_file_pos_indep -pos_indep_model_prob_output_method  numpy ' \
-                            '-pos_indep_model_markov_order 1 -loc_indep_const 4 -chromosome_seq chromosome -alphabet A,C,G,T -rc_alphabet T,G,C,A -pos_indep_model_prob_output_file pos_indep_probs ' \
+                            '-pos_indep_model_markov_order 4 -loc_indep_const 4 -chromosome_seq chromosome -alphabet A,C,G,T -rc_alphabet T,G,C,A -pos_indep_model_prob_output_file pos_indep_probs ' \
                             ' -uniform 0 -offset 0 -seq_file ' + seq_dir + 'seq_input ' \
                                                                            '-pos_dep_model_generate_method train_file -pos_dep_model_prob_output_method numpy -pos_dep_model_markov_order 1' \
                                                                            ' -pos_dep_model_prob_output_file pos_dep_probs -temp_param 1' \
                                                                            ' -nc_concentration 1 -row_binding_output_method numpy' \
                                                                            ' -row_binding_file_name ' + kaplan_dir + \
                             'kaplan_scores  -train_file ' + train_dir + 'random_fasta -protein_len 5 -loc_indep_confg_vecs_file  ' \
-                            + non_pos_train_dir + 'non_loc_vecs  -loc_indep_seq_file ' \
-                            + non_pos_train_dir + 'non_loc_seqs'
+                            + non_pos_train_dir + 'small_vecs  -loc_indep_seq_file ' \
+                            + non_pos_train_dir + 'small_seqs'
+
 
