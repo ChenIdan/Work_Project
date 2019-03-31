@@ -12,26 +12,20 @@ import re
 
 
 def Jpwm_from_seq(pos_mats_sum, const, mats_num, mk_ord,
-                  alphabet):  # function for creating Joint probability matrix from a list of position
+                  alphabet,protein_len):  # function for creating Joint probability matrix from a list of position
     #  matrices
     Jpwm = pos_mats_sum
     alphabet_len = len(alphabet)
     i = 0
 
-    cur_mk_ord = 0
+    delta = const
 
     for row in Jpwm:
-        if cur_mk_ord == mk_ord:
-            Jpwm[i] = (Jpwm[i] + (np.ones(np.size(row)) * np.power(alphabet_len, const - mk_ord))) / \
-                      (np.ones(np.size(row)) * (mats_num + np.power(alphabet_len, const + 1)))
-        if cur_mk_ord < mk_ord:
-            Jpwm[i] = (Jpwm[i] + (np.ones(np.size(row)) * np.power(alphabet_len, const - cur_mk_ord))) / \
-                      (np.ones(np.size(row)) * (mats_num + np.power(alphabet_len, const + 1)))
-            cur_mk_ord = cur_mk_ord + 1
-        i = i + 1
+            Jpwm[i] = (Jpwm[i] + (np.ones(np.size(row)) * delta*np.power(alphabet_len, protein_len - mk_ord - 1))) / \
+                      (np.ones(np.size(row)) * (mats_num + delta*np.power(alphabet_len, protein_len)))
+            i = i + 1
 
     return Jpwm
-
 
 def get_Jpwm(seq_file, mk_ord, const, uniform, offset, alphabet, rc_alphabet):  # return joint probability matrix
 
@@ -90,7 +84,7 @@ def get_Jpwm(seq_file, mk_ord, const, uniform, offset, alphabet, rc_alphabet):  
         else:
             a= re.search('[0-9]+', line).group()
             if a != '1':
-                break
+               break
 
     if cur_mats_sum == [] or cur_mat == []:
         exit("there are no sequence matrices in you train file\n")
@@ -99,7 +93,7 @@ def get_Jpwm(seq_file, mk_ord, const, uniform, offset, alphabet, rc_alphabet):  
     const = 1.0 / np.power(float(alphabet_len), seq_len - const - 1)  # we convert to float to prevent division by zero
     fh.close()
 
-    return Jpwm_from_seq(cur_mats_sum, const, seq_mats_num, mk_ord, alphabet)
+    return Jpwm_from_seq(cur_mats_sum, const, seq_mats_num, mk_ord, alphabet, seq_len)
 
 
 def pos_dep_con_mat(seq_file, mk_ord, uniform, offset, alphabet,
@@ -124,7 +118,10 @@ def pos_dep_con_mat(seq_file, mk_ord, uniform, offset, alphabet,
 
     joint_mat1 = np.delete(joint_mat1, joint_mat1.shape[0] - 1, axis=0)  # delete last row
 
-    joint_mat2 = np.delete(joint_mat2, 0, axis=0)  # delete last row
+    joint_mat2 = np.delete(joint_mat2, 0, axis=0)
+
+    joint_mat1 = np.delete(joint_mat1, 0 ,axis=0)
+
 
     joint_mat1 = np.repeat(joint_mat1, alphabet_len, axis=1)  # repeat every coloumn 4 time
 
@@ -134,7 +131,6 @@ def pos_dep_con_mat(seq_file, mk_ord, uniform, offset, alphabet,
 
     model_mat = np.vstack((joint_vec, con_mat))
 
-    model_mat = kill_spare_lines(model_mat, mk_ord)
 
     return model_mat  # return conditional probability matrix
 

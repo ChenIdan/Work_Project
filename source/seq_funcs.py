@@ -73,7 +73,7 @@ def get_mk_seqMat(seq, mk_ord, uniform, offset,alphabet):  # create markov posit
 			pos = (pos + int(seq[cur]))
 			seq_mat[col][int(pos)] = 1  # mark position on sequence matrix
 		col = (col + 1)  # go to the next column in sequence matrix
-	return seq_mat
+	return seq_mat[mk_ord:]
 
 
 def get_sparse_SeqMat(seq, mk_ord,alphabet):
@@ -103,3 +103,4 @@ def get_sparse_SeqMat(seq, mk_ord,alphabet):
 	sparse_seq_mat = coo_matrix((data, (rows, cols)), shape=(len(seq) - mk_ord, np.power(len(alphabet), mk_ord+1)))
 
 	return sparse_seq_mat
+
