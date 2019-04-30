@@ -77,7 +77,7 @@ def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabe
     if cur_mats_sum == [] or cur_mat == []:
         exit("there are no sequence matrices in you train file\n")
 
-    delta = 1.0 / np.power(float(alphabet_len), seq_len - 70*cur_mk_ord - 1)  # we convert to float to prevent division by zero
+    delta = 1.0 / np.power(float(alphabet_len), seq_len -2*uniform - cur_mk_ord - 1)  # we convert to float to prevent division by zero
     fh.close()
 
     inv_mat = seq_funcs.rc_mat(mk_ord, alphabet, rc_alphabet)
