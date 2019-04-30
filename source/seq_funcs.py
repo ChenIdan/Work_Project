@@ -2,6 +2,11 @@ import numpy as np
 import math
 from string import maketrans
 from scipy.sparse import coo_matrix
+from sklearn.preprocessing import LabelEncoder
+import scipy.sparse as sparse
+from sklearn.preprocessing import OneHotEncoder
+import sklearn
+import itertools
 
 
 def rc_seq(seq, alphabet, rc_alphabet):
@@ -14,66 +19,32 @@ def rc_seq(seq, alphabet, rc_alphabet):
 	return rev_seq
 
 
-def get_seqMat(seq, mk_ord,alphabet):  # get regular sequence matrix.
-	col = 0
-	pos = 0
-	seq = seq.split()[0]
-	seq_len = len(seq)
+def get_seqMat(seq, mk_ord,uniform, offset, alphabet):  # get regular sequence matrix.
+
+	seq = list(seq)
+
+	seq = seq[(uniform + offset): (len(seq) - uniform + offset)]
+	diags_mat = np.zeros((len(seq) , len(seq) - mk_ord))
+	i=0
 	alphabet_len = len(alphabet)
-	mklen = int(math.pow(alphabet_len, mk_ord + 1))  # current markov sequence permutations number
-	seq_mat = np.zeros((seq_len, mklen), dtype=np.int)  # creates zero filled matrix according to markov order#
-	DNA = ''.join(alphabet)  # dna proteins
-	nums = range(0, alphabet_len)  # locations
-	loc = ''.join(str(x) for x in nums)
-	trantab = maketrans(DNA, loc)
-	seq = seq.translate(trantab)
-	for cur in range(seq_len):  # go through sequence
-		if mklen != 1:
-			mklen = (mklen / alphabet_len)  # decrease markov sequence length
-			pos = (pos + int(seq[cur]) * mklen)
-			if mklen == 1:
-				seq_mat[col][int(pos)] = 1  # mark position on sequence matrix
-			# get current digit representing current base for representing current sequence
-		elif mklen == 1:  # erase last digit in number representing current sequence
-			pos = (pos % (math.pow(alphabet_len, mk_ord)))
-			pos = (pos * alphabet_len)
-			pos = (pos + int(seq[cur]))
-			seq_mat[col][int(pos)] = 1  # mark position on sequence matrix
-		col = (col + 1)  # go to the next column in sequence matrix
 
-	# returns matrix without spare information
-	return seq_mat[mk_ord:]
+	while (i <= mk_ord):
+		np.fill_diagonal(diags_mat[i:], np.power(alphabet_len, mk_ord - i))
+		i= i+1
 
+	label_encoder = LabelEncoder()
+	integer_encoded = label_encoder.fit_transform(seq)
 
-def get_mk_seqMat(seq, mk_ord, uniform, offset,alphabet):  # create markov position  matrix from sequence string.
-	#  used for creating pwm
-	col = 0
-	pos = 0
-	tmp = mk_ord + 1
-	seq = seq.split()[0]
-	seq_len = len(seq) - 2 * uniform
-	alphabet_len = len(alphabet)
-	mklen = int(math.pow(alphabet_len, tmp))  # current markov sequence permutations number
-	seq_mat = np.zeros((seq_len, mklen))  # create zero filled matrix according to markov order#
-	DNA = ''.join(alphabet) # dna proteins
-	nums = range(0, alphabet_len)  # locations
-	loc = ''.join(str(x) for x in nums)
-	trantab = maketrans(DNA, loc)
-	seq = seq.translate(trantab)
-	for cur in range(uniform + offset, uniform + offset + seq_len):  # go through sequence
-		if mklen != 1:
-			mklen = (mklen / alphabet_len)  # decrease markov sequence length
-			pos = (pos + int(seq[cur]) * mklen)
-			# get current digit representing current base for representing current sequence
-			for i in range(mklen):
-				seq_mat[col][pos + i] = 1  # mark position on sequence matrix
-		elif mklen == 1:  # erase last digit in number representing current sequence
-			pos = (pos % (math.pow(alphabet_len, mk_ord)))
-			pos = (pos * alphabet_len)
-			pos = (pos + int(seq[cur]))
-			seq_mat[col][int(pos)] = 1  # mark position on sequence matrix
-		col = (col + 1)  # go to the next column in sequence matrix
-	return seq_mat[mk_ord:]
+	kmers = np.dot(integer_encoded, diags_mat)
+
+	rows = np.arange(0, len(seq) - mk_ord, step=1)
+	cols = kmers
+
+	data = np.ones(len(seq) - mk_ord)
+
+	sparse_seq_mat = coo_matrix((data, (rows, cols)), shape=(len(seq) - mk_ord, np.power(len(alphabet), mk_ord + 1)))
+
+	return sparse.lil_matrix(sparse_seq_mat).toarray()
 
 
 def get_sparse_SeqMat(seq, mk_ord,alphabet):
@@ -104,3 +75,24 @@ def get_sparse_SeqMat(seq, mk_ord,alphabet):
 
 	return sparse_seq_mat
 
+def rc_mat( mk_ord, alphabet, rc_alphabet):
+	c_kmers =list(itertools.product(rc_alphabet, repeat=mk_ord+1))
+
+	rc_kmers =  [''.join(c)[::-1] for c in c_kmers]
+
+	DNA = ''.join(alphabet)  # dna proteins
+	NUMS_DNA = ''.join((np.arange(0,len(alphabet)).astype('S10')))  # locations
+	trantab = maketrans(DNA, NUMS_DNA)
+
+	num_kmers = [int(c.translate(trantab), len(alphabet)) for c in rc_kmers]
+
+	rows = np.arange(0, len(num_kmers), step=1)
+	cols = num_kmers
+
+	data = np.ones(len(num_kmers))
+
+	sparse_seq_mat = coo_matrix((data, (rows, cols)), shape=(len(rows), len(rows)))
+
+	inv_mat =  sparse.lil_matrix(sparse_seq_mat).toarray()
+
+	return inv_mat
