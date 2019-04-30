@@ -35,8 +35,6 @@ def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabe
     seq_mats_num = 0  # number of sequence matrices
 
     fh = open(seq_file, 'r')  # open sequence file
-    cur_mats_sum = []
-    cur_mat = []
 
     alphabet_len = len(alphabet)
 
@@ -47,22 +45,18 @@ def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabe
 
     regex = re.compile(r''.join(alphabet) + '*')
 
-    summing_matrix = np.zeros((seq_len, seq_len))
+    summing_matrix = np.zeros((seq_len, seq_len - mk_ord))
 
     for i in range(0,mk_ord+1):
         np.fill_diagonal(summing_matrix[::][i:], np.power(len(alphabet),mk_ord - i))
 
-    for line in fh:  # loops though file lines
-        if line[0] in alphabet:
-            cur_mats_sum = seq_funcs.get_seqMat(line.splitlines()[0], mk_ord, uniform, offset,
-                                                   alphabet)  # translate sequence line to sequence matrix
-            break
 
-    cur_mats_sum.fill(0)
+    cur_mats_sum= np.zeros((seq_len - mk_ord, np.power(len(alphabet), mk_ord+1)))
     fh.seek(0)
 
 
-    arr = np.array([])
+
+
 
     while fh:
 
@@ -79,15 +73,23 @@ def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabe
 
         protein_lines = protein_lines.translate(trantab)
 
-        protein_lines = np.array(map(int ,list(protein_lines)))
+        protein_lines = np.array(list(protein_lines))
+
+        protein_lines = protein_lines.astype(np.float64)
 
         protein_lines = np.reshape(protein_lines,(len(protein_lines)/seq_len, seq_len))
 
         protein_kmers = np.dot(protein_lines, summing_matrix)
 
-        
+        N = np.power(len(alphabet), mk_ord+1)
 
-        #arr = np.concatenate((arr, protein_kmers), axis=None)
+        protein_kmers = np.transpose(protein_kmers)
+        id = protein_kmers + (N * np.arange(protein_kmers.shape[0], dtype = np.int64))[:,None]
+
+        kmers_counts = np.bincount((id.ravel()).astype(np.int64),minlength=N*protein_kmers.shape[0]).reshape(-1,N)
+
+        cur_mats_sum = cur_mats_sum + kmers_counts
+
 
         seq_mats_num = seq_mats_num + (4*(offset > 0)  + 2)*len(protein_kmers)  # count the sequence matrices
 
@@ -122,7 +124,7 @@ def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabe
 
 
 
-    if cur_mats_sum == [] or cur_mat == []:
+    if cur_mats_sum == []:
         exit("there are no sequence matrices in you train file\n")
 
     delta = 1.0 / np.power(float(alphabet_len), seq_len -2*uniform - cur_mk_ord - 1)  # we convert to float to prevent division by zero
