@@ -9,6 +9,7 @@ TODO: write summary of what we did so far
 import numpy as np
 import seq_funcs
 import re
+from string import maketrans
 
 
 def Jpwm_from_seq(pos_mats_sum, delta, mats_num, mk_ord,
@@ -39,9 +40,20 @@ def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabe
 
     alphabet_len = len(alphabet)
 
+    alphabet = ''.join(alphabet)
+    nums = range(0, len(alphabet))  # locations
+    loc = ''.join(str(x) for x in nums)
+    trantab = maketrans(alphabet, loc)
+
+    regex = re.compile(r''.join(alphabet) + '*')
+
+    summing_matrix = np.zeros((seq_len, seq_len))
+
+    for i in range(0,mk_ord+1):
+        np.fill_diagonal(summing_matrix[::][i:], np.power(len(alphabet),mk_ord - i))
+
     for line in fh:  # loops though file lines
         if line[0] in alphabet:
-            seq_len = len(line)
             cur_mats_sum = seq_funcs.get_seqMat(line.splitlines()[0], mk_ord, uniform, offset,
                                                    alphabet)  # translate sequence line to sequence matrix
             break
@@ -49,30 +61,66 @@ def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabe
     cur_mats_sum.fill(0)
     fh.seek(0)
 
-    for line in fh:  # loops though file lines
-        if line[0] in alphabet:
 
-            if (offset > 0):
-                cur_mat = seq_funcs.get_seqMat(line.splitlines()[0], mk_ord, uniform, offset,
-                                                  alphabet)  # translate sequence lines to sequence matrix
-                cur_mats_sum = cur_mats_sum + cur_mat  # add current sequence matrix to sum
+    arr = np.array([])
 
-                cur_mat = seq_funcs.get_seqMat(line.splitlines()[0], mk_ord, uniform, -offset,
-                                                  alphabet)  # translate sequence lines to sequence matrix
-                cur_mats_sum = cur_mats_sum + cur_mat  # add current sequence matrix to sum
+    while fh:
+
+        lines = fh.readlines(10000000)
+
+        if lines == []:
+            break
+
+        protein_lines = filter(regex.search,lines)
+
+        protein_lines = ''.join(protein_lines)
+
+        protein_lines = ''.join(protein_lines.split())
+
+        protein_lines = protein_lines.translate(trantab)
+
+        protein_lines = np.array(map(int ,list(protein_lines)))
+
+        protein_lines = np.reshape(protein_lines,(len(protein_lines)/seq_len, seq_len))
+
+        protein_kmers = np.dot(protein_lines, summing_matrix)
+
+        
+
+        #arr = np.concatenate((arr, protein_kmers), axis=None)
+
+        seq_mats_num = seq_mats_num + (4*(offset > 0)  + 2)*len(protein_kmers)  # count the sequence matrices
 
 
-            cur_mat = seq_funcs.get_seqMat(line.splitlines()[0], mk_ord, uniform, 0,
-                                              alphabet)  # translate sequence lines to sequence matrix
 
-            cur_mats_sum = cur_mats_sum + cur_mat  # add current sequence matrix to sum
 
-            seq_mats_num = seq_mats_num + (offset > 0) * 4 + 2  # count the sequence matrices
 
-        else:
-            a= re.search('[0-9]+', line).group()
-            if a != '1':
-                 break
+
+
+
+
+
+    #for line in fh:  # loops though file lines
+     #   if line[0] in alphabet:
+
+      #      if (offset > 0):
+       #         cur_mat = seq_funcs.get_seqMat(line.splitlines()[0], mk_ord, uniform, offset,
+             #                                     alphabet)  # translate sequence lines to sequence matrix
+        #        cur_mats_sum = cur_mats_sum + cur_mat  # add current sequence matrix to sum
+
+         #       cur_mat = seq_funcs.get_seqMat(line.splitlines()[0], mk_ord, uniform, -offset,
+            #                                      alphabet)  # translate sequence lines to sequence matrix
+          #      cur_mats_sum = cur_mats_sum + cur_mat  # add current sequence matrix to sum
+
+
+           # cur_mat = seq_funcs.get_seqMat(line.splitlines()[0], mk_ord, uniform, 0,
+           #                                   alphabet)  # translate sequence lines to sequence matrix
+
+            #cur_mats_sum = cur_mats_sum + cur_mat  # add current sequence matrix to sum
+
+            #seq_mats_num = seq_mats_num + (offset > 0) * 4 + 2  # count the sequence matrices
+
+
 
     if cur_mats_sum == [] or cur_mat == []:
         exit("there are no sequence matrices in you train file\n")
