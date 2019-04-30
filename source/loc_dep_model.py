@@ -11,7 +11,7 @@ import seq_funcs
 import re
 
 
-def Jpwm_from_seq(pos_mats_sum, const, mats_num, mk_ord,
+def Jpwm_from_seq(pos_mats_sum, delta, mats_num, mk_ord,
                   alphabet,protein_len):  # function for creating Joint probability matrix from a list of position
     #  matrices
     Jpwm = pos_mats_sum
@@ -20,7 +20,6 @@ def Jpwm_from_seq(pos_mats_sum, const, mats_num, mk_ord,
 
 
 
-    delta = const
 
     for row in Jpwm:
             Jpwm[i] = (Jpwm[i] + (np.ones(np.size(row)) * delta*np.power(alphabet_len, protein_len - mk_ord - 1))) / \
@@ -30,7 +29,7 @@ def Jpwm_from_seq(pos_mats_sum, const, mats_num, mk_ord,
 
     return Jpwm
 
-def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabet):  # return joint probability matrix
+def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabet, seq_len):  # return joint probability matrix
 
     seq_mats_num = 0  # number of sequence matrices
 
@@ -70,15 +69,15 @@ def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabe
 
             seq_mats_num = seq_mats_num + (offset > 0) * 4 + 2  # count the sequence matrices
 
-#        else:
-#            a= re.search('[0-9]+', line).group()
-#            if a != '1':
-#                 break
+        else:
+            a= re.search('[0-9]+', line).group()
+            if a != '1':
+                 break
 
     if cur_mats_sum == [] or cur_mat == []:
         exit("there are no sequence matrices in you train file\n")
 
-    delta = 1.0 / np.power(float(alphabet_len), seq_len - cur_mk_ord - 1)  # we convert to float to prevent division by zero
+    delta = 1.0 / np.power(float(alphabet_len), seq_len - 70*cur_mk_ord - 1)  # we convert to float to prevent division by zero
     fh.close()
 
     inv_mat = seq_funcs.rc_mat(mk_ord, alphabet, rc_alphabet)
@@ -96,7 +95,7 @@ def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabe
 
 
 def pos_dep_con_mat(seq_file, mk_ord, uniform, offset, alphabet,
-                    rc_alphabet):  # calculating model probabilities as a position dependent probabilities
+                    rc_alphabet, seq_len):  # calculating model probabilities as a position dependent probabilities
     if mk_ord == 0:  # return joint probability matrix if markov order is zero
         return get_Jpwm(seq_file, mk_ord, mk_ord, uniform, offset, alphabet, rc_alphabet)
 
@@ -104,10 +103,10 @@ def pos_dep_con_mat(seq_file, mk_ord, uniform, offset, alphabet,
     #  (mk_ord) and previous markov order (mk_ord-1)
     alphabet_len = len(alphabet)
     joint_mat1 = np.array(get_Jpwm(seq_file, mk_ord - 1, mk_ord, uniform, offset, alphabet,
-                                   rc_alphabet))  # get joint probability matrix of previous order
+                                   rc_alphabet, seq_len))  # get joint probability matrix of previous order
 
     joint_mat2 = np.array(get_Jpwm(seq_file, mk_ord, mk_ord, uniform, offset, alphabet,
-                                   rc_alphabet))  # get joint probability matrix from current markov
+                                   rc_alphabet, seq_len))  # get joint probability matrix from current markov
     #  order
 
     joint_vec = np.array(joint_mat2[0])
