@@ -14,7 +14,6 @@ from string import maketrans
 import plotly
 import pickle
 import os
-
 plotly.__version__
 import system_funcs
 import loc_indep_model
@@ -163,7 +162,7 @@ def main(argv):  # main program
         const =args.loc_indep_const
 
         loc_indep_model_mat = loc_indep_model.get_model(args.loc_indep_confg_vecs, args.loc_indep_seq,
-                                                        loc_indep_mk_order, alphabet, const, rc_alphabet,protein_len)
+                                                        loc_indep_mk_order, alphabet,rc_alphabet, const,protein_len)
         np.save(base_dir + "trained_models" + sep + "trained_pos_indep_model", loc_indep_model_mat)
 
 
@@ -326,8 +325,7 @@ def main(argv):  # main program
     i=0
     for line in fh:
         v = ((line.split('::'))[1].split(':'))
-        if v[0]!= '1':
-            break
+        loc_str = str(v)
         v = v[1].split('-')
         v= map(int, v)
         print v
@@ -410,8 +408,7 @@ def main(argv):  # main program
     fh.seek(0)
     for line in fh:
         v = ((line.split('::'))[1].split(':'))
-        if v[0] != '1':
-            break
+        loc_str = v
         v = v[1].split('-')
         v = map(int, v)
         print v
@@ -445,6 +442,9 @@ def main(argv):  # main program
         plt.show()
         i = i+1
         print "segal: ", np.corrcoef(data1, data2)
+
+
+    fh.seek(0)
 
 
 
@@ -536,7 +536,7 @@ argv_input_gxw_file_check = 'model.py -pos_indep_model_generate_method input_fil
                                                                                                                                                                                                                                                                                                                    ' -row_binding_file_name ' \
                             + segal_dir + 'kaplan_scores_from_segal_pwm '
 
-argv_for_train_file_check = 'model.py -pos_indep_model_generate_method input_file -pos_indep_model_input_file /home/chenidan/nucleusome/source/segal_pos_indep_pwm*.npy  -pos_indep_model_file_method numpy -pos_indep_model_prob_output_method  numpy ' \
+argv_for_train_file_check = 'model.py -pos_indep_model_generate_method train_file_pos_indep -pos_indep_model_input_file /home/chenidan/nucleusome/non_pos_vecs/non_loc_vecs  -pos_indep_model_file_method numpy -pos_indep_model_prob_output_method  numpy ' \
                             '-pos_indep_model_markov_order 4 -loc_indep_const 4 -chromosome_seq chromosome -alphabet A,C,G,T -rc_alphabet T,G,C,A -pos_indep_model_prob_output_file pos_indep_probs ' \
                             ' -uniform 10 -offset 1 -seq_file ' + seq_dir + 'seq_input ' \
                                                                            '-pos_dep_model_generate_method train_file -pos_dep_model_prob_output_method numpy -pos_dep_model_markov_order 1' \
@@ -548,11 +548,27 @@ argv_for_train_file_check = 'model.py -pos_indep_model_generate_method input_fil
                             + non_pos_train_dir + 'non_loc_seqs'
 
 
-
 main(argv_for_train_file_check.split()[1:])
 
 
-argv_for_train_file_check = 'model.py -pos_indep_model_generate_method train_file_pos_indep -pos_indep_model_prob_train_file /home/chenidan/nucleusome/non_pos_vecs/small_vecs  -pos_indep_model_prob_output_method  numpy ' \
+
+argv_for_segal_pl_file_check = 'model.py -pos_indep_model_generate_method input_file -pos_indep_model_input_file /home/chenidan/nucleusome/source/segal_pos_indep_pwm*.npy  -pos_indep_model_file_method numpy -pos_indep_model_prob_output_method  numpy ' \
+                            '-pos_indep_model_markov_order 4 -loc_indep_const 4 -chromosome_seq chromosome -alphabet A,C,G,T -rc_alphabet T,G,C,A -pos_indep_model_prob_output_file pos_indep_probs ' \
+                            ' -uniform 10 -offset 1 -seq_file ' + seq_dir + 'seq_input ' \
+                                                                           '-pos_dep_model_generate_method train_file -pos_dep_model_prob_output_method numpy -pos_dep_model_markov_order 1' \
+                                                                           ' -pos_dep_model_prob_output_file pos_dep_probs -temp_param 1' \
+                                                                           ' -nc_concentration 1 -row_binding_output_method numpy' \
+                                                                           ' -row_binding_file_name ' + kaplan_dir + \
+                            'kaplan_scores  -train_file ' + train_dir + 'extracted_fasta -protein_len 146 -loc_indep_confg_vecs_file  ' \
+                            + non_pos_train_dir + 'non_loc_vecs  -loc_indep_seq_file ' \
+                            + non_pos_train_dir + 'non_loc_seqs'
+
+
+#main(argv_for_segal_pl_file_check.split()[1:])
+
+
+
+argv_for_toy_model= 'model.py -pos_indep_model_generate_method train_file_pos_indep -pos_indep_model_prob_train_file /home/chenidan/nucleusome/non_pos_vecs/non_loc_vecs  -pos_indep_model_prob_output_method  numpy ' \
                             '-pos_indep_model_markov_order 2 -loc_indep_const 1 -chromosome_seq chromosome -alphabet A,C,G,T -rc_alphabet T,G,C,A -pos_indep_model_prob_output_file pos_indep_probs ' \
                             ' -uniform 0 -offset 0 -seq_file ' + seq_dir + 'seq_input ' \
                                                                            '-pos_dep_model_generate_method train_file -pos_dep_model_prob_output_method numpy -pos_dep_model_markov_order 1' \

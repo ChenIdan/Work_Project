@@ -59,7 +59,7 @@ def random_chrom(seq_len, file_name,alphabet, nc_num):
 
 print random_chrom(10, "chromosome","ACGT",1)
 
-fasta_file(1, 5, "/home/chenidan/nucleusome/train_files/random_fasta","ACGT")
+fasta_file(3, 5, "/home/chenidan/nucleusome/train_files/random_fasta","ACGT")
 
 
 

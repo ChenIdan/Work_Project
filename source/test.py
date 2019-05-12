@@ -8,11 +8,10 @@ import system_funcs
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-import pwm
 import plotly.plotly as py
 import plotly.graph_objs as go
-import plotly
 from string import maketrans
+import plotly
 
 
 sep = os.sep
@@ -52,6 +51,8 @@ def get_segal_scores(scores_file):
 	table = pd.read_csv(scores_file_path, sep='\t', lineterminator='\n')
 
 	return table['Raw Binding (log ratio)']
+
+
 
 
 def get_segal_probs(probs_file):
@@ -273,7 +274,49 @@ def kaplan_segal_probs_cmp():
 
 	py.plot(fig, sharing='public', filename='kaplan and segal sit probs')
 
+def subplot_shared_xAxis(x_axis, data1, data2, file_name, plt_name1,plt_name2):
+	trace0 = go.Scatter(x=x_axis, y=data1,
+						name=plt_name1,
+						mode="lines+markers")
+	# mode can be 'markers', 'lines+markers', 'lines'
+
+	trace1 = go.Scatter(x=x_axis, y=data2,
+						name=plt_name2,
+						mode="lines+markers",
+						yaxis = "y2")
+
+	mydata = [trace0, trace1]
+
+	layout = go.Layout(
+		yaxis=dict(
+			domain=[0, 0.5]
+		),
+		yaxis2=dict(
+			domain=[0.5, 1]
+		),
+	)
 
 
-test_scores_naive(np.load("/home/chen/Desktop/Work_Project/trained_models/trained_pos_indep_model.npy"),np.load("/home/chen/Desktop/Work_Project/trained_models/trained_pos_dep_model.npy"),"TTTCCGGTGTTGGTCAATCCCTGAATAGCGAACGATTATAATGAGACTGGAGTGTAATCGCTAGCGACGACCGAGAGGTTCTTAGCGGCATCGTAGTTACCCCTCGGCTCCAGTAGCTCACTAATGGTCGCCGATCTGATAGATTGCTCGGTAATCTCCGTCTGGTCTCGTCTGCATGGCGGACTTTATAGATCTAGTATCGGTCTGGTTATAACGATGCTGAGCATAAGCGTGGCTGAAAACCGGCGCATAAAGGGCAAATCCGAAAGCAACGAGTGTCCTGTGGACCATATGGATAACTAGAGTACCCCGCACGCTAGCATGACACATGCCTCCGCGAGGCCATTCTTCGATACAGTAAGAATAGATTCATTCGCCTATTTCTCTGTTTTTTTGCGCTATACTTACGTTCCCCTTAATTGCCTGCCGGAGCTAAGGACGTTCCATTGCGTGGGGCCGGGTTCTCGGCAATTCGCTATATTAGCCCGAAGACCAGTCGGGCAGGACCCGAGAAGTTGGTTGCCAGTGCCCCCGAATAATCCTCCTAAAACTATGCCTGGGCGTTGGCAGCAGTCCGTCGAAACTTCGGGCAGAGAGGCCTAGCCGGCTCAAGCGAGTGGAAAAACTTAGGAGCGTCCGGTATTGATTGTCGGGCAAATACCTTCTCATACGTGACGGATTCCCGCCTCCCGGTTCTCAGGAGGGTTAAAGGTGTAATTTCTATAGACGTGACCGCAGGGGAGAAGAGCTCCTGCTCCCATTTTTTGGCGGTAACGTGATCCTGAATGGCGCCTTTGACGGAGCAACGTACATAACGTCGGAGTCCCTGCAGTCATCTAGTACCTCCATCTCGTACACAGGAGACGACAATTTTACACTCAAGACTTGTTTCATGGTTAACCAGACTTGAATGTGATTCCTCTAAACCATCCACGTGCCAGAGACAGCATATCTGGTGAAGTAGACTCTACAGAAGGCCATAGTCAGTTAGGGACTTATC")
+	fig = go.Figure(data=mydata, layout=layout)
 
+	plotly.offline.plot(fig, filename=file_name)
+
+
+def cmp_loc_indep(file_name,v1, v2):
+	kaplan_pos_indep_probs = np.load("/home/chenidan/nucleusome/source/pos_indep_probs.npy")
+	segal_pos_dep_probs = np.load("/home/chenidan/nucleusome/segal_results/pos_indep_probs.npy")
+	subplot_shared_xAxis(range(v1,v2), kaplan_pos_indep_probs[v1:v2], segal_pos_dep_probs[v1:v2], "kaplan_vs_segal PL scores, window" +str([v1,v2]), "kaplan","segal")
+	print np.corrcoef(kaplan_pos_indep_probs[v1:v2],segal_pos_dep_probs[v1:v2])
+
+def cmp_scores(file_name):
+	kaplan_scores = np.load("/home/chenidan/nucleusome/source/score.npy")
+	segal_scores = pd.read_csv("/home/chenidan/nucleusome/segal_results/scores.tab", delimiter="\t")
+	segal_scores = segal_scores._getitem_column("Raw Binding (log ratio)")
+	subplot_shared_xAxis(range(0, 1000), segal_scores[0:1000], kaplan_scores[0:1000], file_name,
+						 "segal_scores", "kaplan_scores")
+
+
+
+cmp_scores("kaplan_vs_segal with segal pl in kaplan")
+
+cmp_loc_indep("loc_indep_scores in kaplan and segal, in kaplan the means are not inveresed",0, 4000)

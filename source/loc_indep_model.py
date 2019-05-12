@@ -21,7 +21,7 @@ def get_sums(confg_vec, mk_order):
 
     mat_sums = np.transpose(mat_sums)
 
-    confg_sums = np.sum(mat_sums, axis=1)[0: len(confg_vec) - mk_order]
+    confg_sums = np.sum(mat_sums, axis=1)[0: len(confg_vec) - mk_order-1]
 
     return confg_sums
 
@@ -33,8 +33,8 @@ the const variable is a constant added to the sum of configuration, to prevent d
 '''
 
 
-def get_model(confg_vecs_file, chromosome_file, mk_order, alphabet, const, protein_len , rc_alphabet):
-    confg_vecs_sum = np.zeros(np.power(len(alphabet), mk_order + 1))*const
+def get_model(confg_vecs_file, chromosome_file, mk_order, alphabet, rc_alphabet, const, protein_len):
+    confg_vecs_sum = np.zeros(np.power(len(alphabet), mk_order + 1))
     confg_vecs_file = open(confg_vecs_file)
     chromosome_file = open(chromosome_file)
 
@@ -43,12 +43,18 @@ def get_model(confg_vecs_file, chromosome_file, mk_order, alphabet, const, prote
 
         confg_vec = np.fromstring(vec_line, sep=";")
 
+        confg_vec = confg_vec+ 0*np.ones(len(confg_vec))
+
+        if ((vec_line.split('::'))[1].split(':'))[0] != '1':
+            continue
+
+
         vec_end = vec_line.split('::')[1]
 
-        if re.findall("[0-9]+", vec_end)[0] != '1':
-            break
+        #if re.findall("[0-9]+", vec_end)[0] != '1':
+        #    break
 
-        loc_sums = get_sums(confg_vec + np.ones(len(confg_vec))*np.power(4, const)*const, mk_order)
+        loc_sums = get_sums(confg_vec, mk_order)
 
         # get seq matrix (from the proterin sequence)
 
@@ -65,8 +71,11 @@ def get_model(confg_vecs_file, chromosome_file, mk_order, alphabet, const, prote
 
     confg_vecs_sum = np.dot(confg_vecs_sum, rc_mat) +confg_vecs_sum
 
+    confg_vecs_inv_sums = 1.0 /(confg_vecs_sum)
 
-    probs = (1.0/ confg_vecs_sum) / np.sum(confg_vecs_sum)
+
+
+    probs = confg_vecs_inv_sums/ np.sum(confg_vecs_inv_sums)
 
     # calculates the dependent probabilities by
 

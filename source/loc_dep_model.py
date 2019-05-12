@@ -15,6 +15,8 @@ from string import maketrans
 def Jpwm_from_seq(pos_mats_sum, delta, mats_num, mk_ord,
                   alphabet,protein_len):  # function for creating Joint probability matrix from a list of position
     #  matrices
+
+
     Jpwm = pos_mats_sum
     alphabet_len = len(alphabet)
     i = 0
@@ -133,7 +135,7 @@ def get_Jpwm(seq_file, mk_ord, cur_mk_ord, uniform, offset, alphabet, rc_alphabe
     cur_mats_sum = cur_mats_sum[uniform: len(cur_mats_sum)-uniform] + \
                    (offset>0)*(cur_mats_sum[uniform + offset: len(cur_mats_sum)-uniform+offset] + cur_mats_sum[uniform - offset: len(cur_mats_sum)-uniform-offset])
 
-    delta = 1.0 / np.power(float(alphabet_len), seq_len -2*uniform - cur_mk_ord - 1)  # we convert to float to prevent division by zero
+    delta = 1.0 / np.power(float(alphabet_len), seq_len - cur_mk_ord - 1)  # we convert to float to prevent division by zero
     fh.close()
 
     inv_mat = seq_funcs.rc_mat(mk_ord, alphabet, rc_alphabet)

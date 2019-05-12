@@ -1,11 +1,8 @@
 import numpy as np
-import math
 from string import maketrans
 from scipy.sparse import coo_matrix
 from sklearn.preprocessing import LabelEncoder
 import scipy.sparse as sparse
-from sklearn.preprocessing import OneHotEncoder
-import sklearn
 import itertools
 
 

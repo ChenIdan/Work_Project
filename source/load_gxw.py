@@ -82,7 +82,7 @@ def get_position_independent_pwm(gxw_path, uniform):
 		#becuase this pwm matrix is not position dependent, the last row will be repeated until the end of the matrix
 		#the last row is, of course, the one which it's markov order in equall to the model markov order
 		if cur_mk_ord == mk_order:
-			cur_row= np.tile(cur_row, (76 - mk_order   - 2*uniform,1))
+			cur_row= np.tile(cur_row, (146 - mk_order   - 2*uniform,1))
 
 		#stack vertically the current row into the pwm matrix
 		pwm_mat = np.vstack((pwm_mat, cur_row))
@@ -91,7 +91,7 @@ def get_position_independent_pwm(gxw_path, uniform):
 
 	model_mat = np.delete(pwm_mat, 0, 0)
 
-	#model_mat = pwm.kill_spare_lines(model_mat)
+	model_mat =loc_dep_model.kill_spare_lines(model_mat,mk_order)
 
 
 
@@ -104,7 +104,7 @@ def get_position_independent_pwm(gxw_path, uniform):
 
 	model_mat = np.vstack(( model_mat,upper_uniform ))
 
-	return symmetrize_model(model_mat)
+	return model_mat
 
 
 
@@ -321,8 +321,6 @@ cur_dir = system_funcs.prog_root_dir()
 
 
 
-model=get_position_dependent_pwm("/home/chen/nucleosome_model/models/nucleosome_model_1208.gxw",1)
-np.save("/home/chen/Desktop/Work_Project/segal_model_matrices/segal_pos_dep_pwm", model)
 
-model=get_position_independent_pwm("/home/chen/nucleosome_model/models/nucleosome_model_1208.gxw",0)
-np.save("/home/chen/Desktop/Work_Project/segal_model_matrices/segal_pos_indep_pwm", model)
+model=get_position_independent_pwm("nucleosome_model_1208.gxw",0)
+np.save("segal_pos_indep_pwm*", model)
