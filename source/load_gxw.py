@@ -317,7 +317,7 @@ def symmetrize_model(low_model_mat):
 	return model_mat
 
 
-def to_pos_indep_gxw(pwm, mk_order):
+def to_pos_indep_gxw(pwm, mk_order, ):
 	joint_probs = pwm
 	cur_markov_probs = np.array(pwm)
 	array = [pwm]
@@ -332,12 +332,12 @@ def to_pos_indep_gxw(pwm, mk_order):
 	array = np.array(array[::-1])
 
 
-	print '<WeightMatrices>' \
-		  '<WeightMatrix Name="NucleosomeBackground" Type="MarkovOrder" Order=', mk_order, '>'
 
-	print '<Order Markov="', mk_order, '"'
+	print '<WeightMatrix Name="NucleosomeBackground" Type="MarkovOrder" Order="'+ str(mk_order)+ '">'
+
+	print '<Order Markov="' + str(0)+ '"'
 	weights = np.array2string(array[0], separator=';')[1:]
-	print "Weights=", weights[:len(weights) - 1], "></Order>"
+	print 'Weights="'+ weights[:len(weights) - 1]+ '"></Order>'
 
 	for ord in range(mk_order+1):
 
@@ -350,16 +350,85 @@ def to_pos_indep_gxw(pwm, mk_order):
 				parents = np.array(map(int, list(np.base_repr(counter,base = 4,padding=(ord>1)*(ord - (counter>0)))[::-1][0:ord][::-1])))
 				parents = np.array2string(parents , separator=';')
 				parents = parents[1:len(parents)-1]
-				print '<Order Markov="', ord, '"', ' Parents= "', parents, '"'
+				print '<Order Markov="'+str(ord)+ '"', ' Parents= "'+ str(parents)+ '"'
 				weights = np.array2string(cond_probs [4*counter:4*counter+4], separator=';')
 				weights = weights[1:len(weights)-1]
-				print "Weights=",weights, "></Order>"
+				print 'Weights="'+weights+ '"></Order>'
 				counter= counter+1
 
 
 
 
 	print "</WeightMatrix>"
+
+
+def to_pos_dep_gxw(pwm, mk_order, uniform):
+	for nuc_loc in range(74, 147 - uniform+1):
+		joint_probs = pwm[nuc_loc - 74]
+		cur_markov_probs = np.array(joint_probs)
+		array = [joint_probs]
+
+		probs = np.array([])
+		for ord in range(mk_order)[::-1]:
+			cur_markov_probs = np.reshape(cur_markov_probs, (np.power(4, ord + 1), 4))
+			cur_markov_probs = np.sum(cur_markov_probs, axis=1)
+			array.append(cur_markov_probs)
+
+		array = np.array(array[::-1])
+
+
+		print '<WeightMatrix Name="Nuc'+str(nuc_loc)+'" Type="MarkovOrder" Order="'+ str(mk_order)+ '">'
+
+		weights = np.array2string(array[0], separator=';')[1:]
+		print '<Order Markov="'+ str(mk_order-1)+ '"','Weights="'+ weights[:len(weights) - 1]+ '"></Order>'
+
+		for ord in range(mk_order + 1):
+
+
+			counter = 0
+			if ord > 0:
+
+				lower_probs = np.repeat(np.array(array[ord - 1]), 4, axis=0)
+				cond_probs = array[ord] / lower_probs
+				while (counter < np.power(4, ord)):
+					parents = np.array(map(int, list(
+						np.base_repr(counter, base=4, padding=(ord > 1) * (ord - (counter > 0)))[::-1][0:ord][::-1])))
+					parents = np.array2string(parents, separator=';')
+					parents = parents[1:len(parents) - 1]
+					print '<Order Markov="'+ str(ord)+ '"', ' Parents= "'+ str(parents)+ '"'
+					weights = np.array2string(cond_probs[4 * counter:4 * counter + 4], separator=';')
+					weights = weights[1:len(weights) - 1]
+					print 'Weights="'+weights+ '"></Order>'
+					counter = counter + 1
+		print "</WeightMatrix>"
+
+
+	for nuc_loc in range(147 - uniform+1, 148):
+		print '<WeightMatrix Name="Nuc'+str(nuc_loc)+ '"'+ ' Type="MarkovOrder" LeftPaddingPositions="0" RightPaddingPositions="0" Order="1">'
+  		print'<Order Markov="0" Weights="0.25;0.25;0.25;0.25"></Order>'
+		print'<Order Markov="1" Parents="0" Weights="0.25;0.25;0.25;0.25"></Order>'
+		print'<Order Markov="1" Parents="1" Weights="0.25;0.25;0.25;0.25"></Order>'
+		print '<Order Markov="1" Parents="2" Weights="0.25;0.25;0.25;0.25"></Order>'
+		print '<Order Markov="1" Parents="3" Weights="0.25;0.25;0.25;0.25"></Order>'
+		print '</WeightMatrix>'
+
+
+
+def gxw_from_models(pos_indep_pwm, pos_dep_pwm, pos_indep_mk_order, pos_dep_mk_order, uniform):
+	print "<WeightMatrices>"
+	to_pos_indep_gxw(pos_indep_pwm, pos_indep_mk_order)
+	to_pos_dep_gxw( pos_dep_pwm, pos_dep_mk_order, uniform)
+
+	print '<WeightMatrix Name="Nucleosome" Type="Nucleosome" LeftPaddingPositions="0" RightPaddingPositions="0" DoubleStrandBinding="false" EffectiveAlphabetSize="4" Alphabet="ACGT" >'
+	print '\t<SubMatrix Name="NucleosomeBackground"></SubMatrix>'
+	for nuc_pos in range(74, 148):
+		print ' <SubMatrix Name="Nuc'+ str(nuc_pos)+'"></SubMatrix>'
+	print "</WeightMatrix>"
+	print "</WeightMatrices>"
+
+
+
+
 
 
 
@@ -372,10 +441,14 @@ def to_pos_indep_gxw(pwm, mk_order):
 
 
 cur_dir = system_funcs.prog_root_dir()
+import os
 
 
+#to_pos_indep_gxw(np.load("/home/chenidan/nucleusome/source/pos_indep_joint_probs.npy"), 4)
 
-to_pos_indep_gxw(np.load("/home/chenidan/nucleusome/source/pos_indep_joint_probs.npy"), 4)
-model=get_position_independent_pwm("nucleosome_model_1208.gxw",0)
+#to_pos_dep_gxw((1.0/16)*np.ones((74,16)), 1,10)
 
-np.save("segal_pos_indep_pwm*", model)
+gxw_from_models(np.load("pos_indep_probs_gxw.npy"),np.load("Joint mat2.npy")[70 - (10+1):], 4,1,10)
+#model=get_position_independent_pwm("nucleosome_model_1208.gxw",0)
+
+#np.save("segal_pos_indep_pwm*", model)
